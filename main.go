@@ -8,6 +8,14 @@ import (
 )
 
 const (
+	KEYWORD     = "KEYWORD"
+	DATA_TYPE   = "DATA_TYPE"
+	OPERATOR    = "OPERATOR"
+	PUNCTUATION = "PUNCTUATION"
+	IDENTIFIER  = "IDENTIFIER"
+)
+
+const (
 	// keywords
 	CREATE   = "CREATE"
 	DATABASE = "DATABASE"
@@ -23,7 +31,7 @@ const (
 	STRING = "STRING"
 	// operators
 	EQUALS = "="
-	// others
+	// punctuation
 	OPEN_PARENTHESIS  = "("
 	CLOSE_PARENTHESIS = ")"
 	COMMA             = ","
@@ -38,13 +46,14 @@ type Token struct {
 func parseInput(input string) {
 	fmt.Println("Parsing:", input)
 
+	// Lexical Analysis:
+
 	lexems := make([]string, 0)
 	lexem := ""
 
 	for _, character := range input {
 		if character == ' ' {
 			if lexem != "" {
-				fmt.Println("Lexem:", lexem)
 				lexems = append(lexems, lexem)
 				lexem = ""
 			}
@@ -52,9 +61,7 @@ func parseInput(input string) {
 			continue
 		}
 
-		if character == '(' || character == ')' || character == ',' {
-			fmt.Println("Lexem:", lexem)
-
+		if character == '(' || character == ')' || character == ',' || character == ';' {
 			if lexem != "" {
 				lexems = append(lexems, lexem)
 				lexem = ""
@@ -68,55 +75,89 @@ func parseInput(input string) {
 		lexem += string(character)
 	}
 
+	if lexem != "" {
+		lexems = append(lexems, lexem)
+	}
+
 	fmt.Println("Lexems:", lexems)
 	for _, lexem := range lexems {
 		fmt.Printf("Lexem: '%s'\n", lexem)
 	}
 
+	// Tokenization:
+
 	tokens := make([]Token, 0)
 
 	for _, lexem := range lexems {
 		switch lexem {
-		case CREATE:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case DATABASE:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case TABLE:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case SELECT:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case FROM:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case WHERE:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case INSERT:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case INTO:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case VALUES:
-			tokens = append(tokens, Token{Kind: "KEYWORD", Value: lexem})
-		case INT:
-			tokens = append(tokens, Token{Kind: "DATA_TYPE", Value: lexem})
-		case STRING:
-			tokens = append(tokens, Token{Kind: "DATA_TYPE", Value: lexem})
+		case CREATE, DATABASE, TABLE, SELECT, FROM, WHERE, INSERT, INTO, VALUES:
+			tokens = append(tokens, Token{Kind: KEYWORD, Value: lexem})
+		case INT, STRING:
+			tokens = append(tokens, Token{Kind: DATA_TYPE, Value: lexem})
 		case EQUALS:
-			tokens = append(tokens, Token{Kind: "OPERATOR", Value: lexem})
-		case OPEN_PARENTHESIS:
-			tokens = append(tokens, Token{Kind: "OTHER", Value: lexem})
-		case CLOSE_PARENTHESIS:
-			tokens = append(tokens, Token{Kind: "OTHER", Value: lexem})
-		case COMMA:
-			tokens = append(tokens, Token{Kind: "OTHER", Value: lexem})
-		case SEMICOLON:
-			tokens = append(tokens, Token{Kind: "OTHER", Value: lexem})
+			tokens = append(tokens, Token{Kind: OPERATOR, Value: lexem})
+		case OPEN_PARENTHESIS, CLOSE_PARENTHESIS, COMMA, SEMICOLON:
+			tokens = append(tokens, Token{Kind: PUNCTUATION, Value: lexem})
 		default:
-			tokens = append(tokens, Token{Kind: "OTHER", Value: lexem})
+			tokens = append(tokens, Token{Kind: IDENTIFIER, Value: lexem})
 		}
 	}
 
 	fmt.Println("Tokens:", tokens)
 	for _, token := range tokens {
 		fmt.Println("Token:", token)
+	}
+
+	// Syntax Analysis:
+
+	if tokens[0].Value != CREATE || tokens[1].Value != TABLE {
+		fmt.Println("Error: Invalid CREATE statement.")
+		return
+	}
+
+	tableName := tokens[2]
+	if tableName.Kind != IDENTIFIER {
+		fmt.Println("Error: Invalid table name.")
+		return
+	}
+
+	if tokens[3].Value != OPEN_PARENTHESIS {
+		fmt.Println("Error: Invalid column definitions.")
+		return
+	}
+
+	columns := make(map[string]string)
+	for i := 4; i < len(tokens); i++ {
+		if tokens[i].Value == CLOSE_PARENTHESIS {
+			break
+		}
+
+		if tokens[i].Kind == PUNCTUATION {
+			continue
+		}
+
+		columnName := tokens[i]
+		fmt.Println("Column name:", columnName)
+		if columnName.Kind != IDENTIFIER {
+			fmt.Println("Error: Invalid column name.")
+			return
+		}
+
+		columnType := tokens[i+1]
+		if columnType.Kind != DATA_TYPE {
+			fmt.Println("Error: Invalid column type.")
+			return
+		}
+
+		columns[columnName.Value] = columnType.Value
+
+		i++
+	}
+
+	fmt.Println("Table name:", tableName.Value)
+	fmt.Println("Columns:", columns)
+	for columnName, columnType := range columns {
+		fmt.Printf("Column: %s %s\n", columnName, columnType)
 	}
 }
 
