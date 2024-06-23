@@ -35,40 +35,37 @@ type Token struct {
 	Value string
 }
 
-func parseCommand(input string) {
+func parseInput(input string) {
 	fmt.Println("Parsing:", input)
 
 	lexems := make([]string, 0)
 	lexem := ""
 
-	for _, r := range input {
-		if r == ' ' {
-			fmt.Println("Lexem:", lexem)
-			lexems = append(lexems, lexem)
-			lexem = ""
+	for _, character := range input {
+		if character == ' ' {
+			if lexem != "" {
+				fmt.Println("Lexem:", lexem)
+				lexems = append(lexems, lexem)
+				lexem = ""
+			}
 
 			continue
 		}
 
-		if r == '(' || r == ')' || r == ',' {
+		if character == '(' || character == ')' || character == ',' {
 			fmt.Println("Lexem:", lexem)
-			lexems = append(lexems, lexem)
-			lexem = ""
 
-			lexems = append(lexems, string(r))
+			if lexem != "" {
+				lexems = append(lexems, lexem)
+				lexem = ""
+			}
+
+			lexems = append(lexems, string(character))
 
 			continue
 		}
 
-		if r == ';' {
-			fmt.Println("Lexem:", lexem)
-			lexems = append(lexems, lexem)
-			lexem = ""
-
-			break
-		}
-
-		lexem += string(r)
+		lexem += string(character)
 	}
 
 	fmt.Println("Lexems:", lexems)
@@ -145,6 +142,6 @@ func main() {
 		}
 
 		fmt.Println("Input:", input)
-		parseCommand(input)
+		parseInput(input)
 	}
 }
