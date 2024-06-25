@@ -128,32 +128,50 @@ func parseInput(input string) {
 	}
 
 	columns := make(map[string]string)
+	columnIndex := 4
 
-	for i := 4; i < len(tokens); i++ {
-		if tokens[i].Value == CLOSE_PARENTHESIS {
+	for columnIndex < len(tokens) {
+		if tokens[columnIndex].Value == CLOSE_PARENTHESIS {
 			break
 		}
 
-		if tokens[i].Kind == PUNCTUATION {
+		if tokens[columnIndex].Kind != IDENTIFIER {
+			fmt.Printf("Error: Expected column name but got '%s'.\n", tokens[columnIndex].Value)
+			return
+		}
+
+		columnName := tokens[columnIndex].Value
+		columnIndex++
+
+		if columnIndex >= len(tokens) || tokens[columnIndex].Kind != DATA_TYPE {
+			fmt.Printf("Error: Expected data type for column '%s' but got '%s'.\n", columnName, tokens[columnIndex].Value)
+			return
+		}
+
+		dataType := tokens[columnIndex].Value
+		columnIndex++
+
+		columns[columnName] = dataType
+
+		if columnIndex < len(tokens) && tokens[columnIndex].Value == COMMA {
+			columnIndex++
 			continue
-		}
-
-		columnName := tokens[i]
-		fmt.Println("Column name:", columnName)
-		if columnName.Kind != IDENTIFIER {
-			fmt.Println("Error: Invalid column name.")
+		} else if columnIndex < len(tokens) && tokens[columnIndex].Value == CLOSE_PARENTHESIS {
+			break
+		} else {
+			fmt.Println("Error: Expected ',' or ')' after column definition.")
 			return
 		}
+	}
 
-		columnType := tokens[i+1]
-		if columnType.Kind != DATA_TYPE {
-			fmt.Println("Error: Invalid column type.")
-			return
-		}
+	if columnIndex >= len(tokens) || tokens[columnIndex].Value != CLOSE_PARENTHESIS {
+		fmt.Println("Error: Expected ')' at the end of column definitions.")
+		return
+	}
 
-		columns[columnName.Value] = columnType.Value
-
-		i++
+	if columnIndex+1 >= len(tokens) || tokens[columnIndex+1].Value != SEMICOLON {
+		fmt.Println("Error: Expected ';' at the end of the statement.")
+		return
 	}
 
 	fmt.Println("Table name:", tableName.Value)
