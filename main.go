@@ -116,6 +116,7 @@ func parseInput(input string) {
 	}
 
 	tableName := tokens[2]
+
 	if tableName.Kind != IDENTIFIER {
 		fmt.Println("Error: Invalid table name.")
 		return
@@ -127,6 +128,7 @@ func parseInput(input string) {
 	}
 
 	columns := make(map[string]string)
+
 	for i := 4; i < len(tokens); i++ {
 		if tokens[i].Value == CLOSE_PARENTHESIS {
 			break
