@@ -4,6 +4,12 @@ GoDB
 
 ## examples
 
+## Creatung Database
+
+```shell
+> CREATE DATABASE mydb;
+```
+
 ### Creating Tables
 
 ```shell

@@ -43,6 +43,95 @@ type Token struct {
 	Value string
 }
 
+func parseCreateDatabaseStatement(tokens []Token) {
+	if len(tokens) < 3 || tokens[0].Value != CREATE || tokens[1].Value != DATABASE {
+		fmt.Println("Error: Invalid CREATE DATABASE statement.")
+		return
+	}
+
+	databaseName := tokens[2]
+
+	if databaseName.Kind != IDENTIFIER {
+		fmt.Println("Error: Invalid database name.")
+		return
+	}
+
+	fmt.Println("Database name:", databaseName.Value)
+}
+
+func parseCreateTableStatement(tokens []Token) {
+	if len(tokens) < 4 || tokens[0].Value != CREATE || tokens[1].Value != TABLE {
+		fmt.Println("Error: Invalid CREATE TABLE statement.")
+		return
+	}
+
+	tableName := tokens[2]
+
+	if tableName.Kind != IDENTIFIER {
+		fmt.Println("Error: Invalid table name.")
+		return
+	}
+
+	if tokens[3].Value != OPEN_PARENTHESIS {
+		fmt.Println("Error: Invalid column definitions.")
+		return
+	}
+
+	columns := make(map[string]string)
+	columnIndex := 4
+
+	for columnIndex < len(tokens) {
+		if tokens[columnIndex].Value == CLOSE_PARENTHESIS {
+			break
+		}
+
+		if tokens[columnIndex].Kind != IDENTIFIER {
+			fmt.Printf("Error: Expected column name but got '%s'.\n", tokens[columnIndex].Value)
+			return
+		}
+
+		columnName := tokens[columnIndex].Value
+		columnIndex++
+
+		if columnIndex >= len(tokens) || tokens[columnIndex].Kind != DATA_TYPE {
+			fmt.Printf("Error: Expected data type for column '%s' but got '%s'.\n", columnName, tokens[columnIndex].Value)
+			return
+		}
+
+		dataType := tokens[columnIndex].Value
+		columnIndex++
+
+		columns[columnName] = dataType
+
+		if columnIndex < len(tokens) && tokens[columnIndex].Value == COMMA {
+			columnIndex++
+			continue
+		} else if columnIndex < len(tokens) && tokens[columnIndex].Value == CLOSE_PARENTHESIS {
+			break
+		} else {
+			fmt.Println("Error: Expected ',' or ')' after column definition.")
+			return
+		}
+	}
+
+	if columnIndex >= len(tokens) || tokens[columnIndex].Value != CLOSE_PARENTHESIS {
+		fmt.Println("Error: Expected ')' at the end of column definitions.")
+		return
+	}
+
+	if columnIndex+1 >= len(tokens) || tokens[columnIndex+1].Value != SEMICOLON {
+		fmt.Println("Error: Expected ';' at the end of the statement.")
+		return
+	}
+
+	fmt.Println("Table name:", tableName.Value)
+	fmt.Println("Columns:", columns)
+	for columnName, columnType := range columns {
+		fmt.Printf("Column: %s %s\n", columnName, columnType)
+	}
+
+}
+
 func parseInput(input string) {
 	fmt.Println("Parsing:", input)
 
@@ -110,74 +199,19 @@ func parseInput(input string) {
 
 	// Syntax Analysis:
 
-	if tokens[0].Value != CREATE || tokens[1].Value != TABLE {
-		fmt.Println("Error: Invalid CREATE statement.")
+	if len(tokens) < 3 {
+		fmt.Println("Error: Invalid statement.")
 		return
 	}
 
-	tableName := tokens[2]
-
-	if tableName.Kind != IDENTIFIER {
-		fmt.Println("Error: Invalid table name.")
-		return
-	}
-
-	if tokens[3].Value != OPEN_PARENTHESIS {
-		fmt.Println("Error: Invalid column definitions.")
-		return
-	}
-
-	columns := make(map[string]string)
-	columnIndex := 4
-
-	for columnIndex < len(tokens) {
-		if tokens[columnIndex].Value == CLOSE_PARENTHESIS {
-			break
+	switch tokens[0].Value {
+	case CREATE:
+		switch tokens[1].Value {
+		case DATABASE:
+			parseCreateDatabaseStatement(tokens)
+		case TABLE:
+			parseCreateTableStatement(tokens)
 		}
-
-		if tokens[columnIndex].Kind != IDENTIFIER {
-			fmt.Printf("Error: Expected column name but got '%s'.\n", tokens[columnIndex].Value)
-			return
-		}
-
-		columnName := tokens[columnIndex].Value
-		columnIndex++
-
-		if columnIndex >= len(tokens) || tokens[columnIndex].Kind != DATA_TYPE {
-			fmt.Printf("Error: Expected data type for column '%s' but got '%s'.\n", columnName, tokens[columnIndex].Value)
-			return
-		}
-
-		dataType := tokens[columnIndex].Value
-		columnIndex++
-
-		columns[columnName] = dataType
-
-		if columnIndex < len(tokens) && tokens[columnIndex].Value == COMMA {
-			columnIndex++
-			continue
-		} else if columnIndex < len(tokens) && tokens[columnIndex].Value == CLOSE_PARENTHESIS {
-			break
-		} else {
-			fmt.Println("Error: Expected ',' or ')' after column definition.")
-			return
-		}
-	}
-
-	if columnIndex >= len(tokens) || tokens[columnIndex].Value != CLOSE_PARENTHESIS {
-		fmt.Println("Error: Expected ')' at the end of column definitions.")
-		return
-	}
-
-	if columnIndex+1 >= len(tokens) || tokens[columnIndex+1].Value != SEMICOLON {
-		fmt.Println("Error: Expected ';' at the end of the statement.")
-		return
-	}
-
-	fmt.Println("Table name:", tableName.Value)
-	fmt.Println("Columns:", columns)
-	for columnName, columnType := range columns {
-		fmt.Printf("Column: %s %s\n", columnName, columnType)
 	}
 }
 
