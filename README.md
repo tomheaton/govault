@@ -1,10 +1,11 @@
-# godb
+# GoVault
 
-GoDB
+GoVault is a simple database project written in Go that supports SQL-like
+commands.
 
 ## examples
 
-## Creatung Database
+## Creating Databases
 
 ```shell
 > CREATE DATABASE mydb;

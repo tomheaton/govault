@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// TODO: prepend with TOKEN_
 const (
 	KEYWORD     = "KEYWORD"
 	DATA_TYPE   = "DATA_TYPE"
@@ -15,6 +16,7 @@ const (
 	IDENTIFIER  = "IDENTIFIER"
 )
 
+// TODO: prepend with KEYWORD_
 const (
 	// keywords
 	CREATE   = "CREATE"
@@ -334,7 +336,7 @@ func parseInput(input string) {
 }
 
 func main() {
-	fmt.Println("Starting GoDB...")
+	fmt.Println("Starting GoVault...")
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -350,7 +352,7 @@ func main() {
 		input = strings.TrimSpace(input)
 
 		if input == "QUIT" {
-			fmt.Println("Quiting GoDB...")
+			fmt.Println("Quiting GoVault...")
 			return
 		}
 
