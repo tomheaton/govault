@@ -44,6 +44,7 @@ type Token struct {
 }
 
 func parseCreateDatabaseStatement(tokens []Token) {
+	// TODO: remove this check as it is already checked in the outer switch statement
 	if len(tokens) < 3 || tokens[0].Value != CREATE || tokens[1].Value != DATABASE {
 		fmt.Println("Error: Invalid CREATE DATABASE statement.")
 		return
@@ -57,9 +58,12 @@ func parseCreateDatabaseStatement(tokens []Token) {
 	}
 
 	fmt.Println("Database name:", databaseName.Value)
+
+	// TODO: create database
 }
 
 func parseCreateTableStatement(tokens []Token) {
+	// TODO: remove this check as it is already checked in the outer switch statement
 	if len(tokens) < 4 || tokens[0].Value != CREATE || tokens[1].Value != TABLE {
 		fmt.Println("Error: Invalid CREATE TABLE statement.")
 		return
@@ -130,6 +134,115 @@ func parseCreateTableStatement(tokens []Token) {
 		fmt.Printf("Column: %s %s\n", columnName, columnType)
 	}
 
+	// TODO: create table with fields
+}
+
+func parseInsertStatement(tokens []Token) {
+	// TODO: remove this check as it is already checked in the outer switch statement
+	if len(tokens) < 4 || tokens[0].Value != INSERT || tokens[1].Value != INTO {
+		fmt.Println("Error: Invalid INSERT INTO statement.")
+	}
+
+	tableName := tokens[2]
+
+	if tableName.Kind != IDENTIFIER {
+		fmt.Println("Error: Invalid table name.")
+		return
+	}
+
+	if tokens[3].Value != OPEN_PARENTHESIS {
+		fmt.Println("Error: Invalid column names.")
+		return
+	}
+
+	columnNames := make([]string, 0)
+	columnIndex := 4
+
+	for columnIndex < len(tokens) {
+		if tokens[columnIndex].Value == CLOSE_PARENTHESIS {
+			break
+		}
+
+		if tokens[columnIndex].Kind != IDENTIFIER {
+			fmt.Printf("Error: Expected column name but got '%s'.\n", tokens[columnIndex].Value)
+			return
+		}
+
+		columnName := tokens[columnIndex].Value
+		columnIndex++
+
+		columnNames = append(columnNames, columnName)
+
+		if columnIndex < len(tokens) && tokens[columnIndex].Value == COMMA {
+			columnIndex++
+			continue
+		} else if columnIndex < len(tokens) && tokens[columnIndex].Value == CLOSE_PARENTHESIS {
+			break
+		} else {
+			fmt.Println("Error: Expected ',' or ')' after column name.")
+			return
+		}
+	}
+
+	if columnIndex >= len(tokens) || tokens[columnIndex].Value != CLOSE_PARENTHESIS {
+		fmt.Println("Error: Expected ')' at the end of column names.")
+		return
+	}
+
+	if columnIndex+1 >= len(tokens) || tokens[columnIndex+1].Value != VALUES {
+		fmt.Println("Error: Expected VALUES keyword.")
+		return
+	}
+
+	if columnIndex+2 >= len(tokens) || tokens[columnIndex+2].Value != OPEN_PARENTHESIS {
+		fmt.Println("Error: Expected '(' before values.")
+		return
+	}
+
+	values := make([]string, 0)
+	valueIndex := columnIndex + 3
+
+	for valueIndex < len(tokens) {
+		if tokens[valueIndex].Value == CLOSE_PARENTHESIS {
+			break
+		}
+
+		if tokens[valueIndex].Kind != IDENTIFIER {
+			fmt.Printf("Error: Expected value but got '%s'.\n", tokens[valueIndex].Value)
+			return
+		}
+
+		value := tokens[valueIndex].Value
+		valueIndex++
+
+		values = append(values, value)
+
+		if valueIndex < len(tokens) && tokens[valueIndex].Value == COMMA {
+			valueIndex++
+			continue
+		} else if valueIndex < len(tokens) && tokens[valueIndex].Value == CLOSE_PARENTHESIS {
+			break
+		} else {
+			fmt.Println("Error: Expected ',' or ')' after value.")
+			return
+		}
+	}
+
+	if valueIndex >= len(tokens) || tokens[valueIndex].Value != CLOSE_PARENTHESIS {
+		fmt.Println("Error: Expected ')' at the end of values.")
+		return
+	}
+
+	if valueIndex+1 >= len(tokens) || tokens[valueIndex+1].Value != SEMICOLON {
+		fmt.Println("Error: Expected ';' at the end of the statement.")
+		return
+	}
+
+	fmt.Println("Table name:", tableName.Value)
+	fmt.Println("Columns:", columnNames)
+	fmt.Println("Values:", values)
+
+	// TODO: insert data into table
 }
 
 func parseInput(input string) {
@@ -211,6 +324,11 @@ func parseInput(input string) {
 			parseCreateDatabaseStatement(tokens)
 		case TABLE:
 			parseCreateTableStatement(tokens)
+		}
+	case INSERT:
+		switch tokens[1].Value {
+		case INTO:
+			parseInsertStatement(tokens)
 		}
 	}
 }
