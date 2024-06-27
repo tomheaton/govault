@@ -7,6 +7,19 @@ import (
 	"strings"
 )
 
+type Table struct {
+	Name    string
+	Columns map[string]string
+	Rows    []map[string]string
+}
+
+type Database struct {
+	Name   string
+	Tables map[string]Table
+}
+
+var databases = make(map[string]Database)
+
 // TODO: prepend with TOKEN_
 const (
 	KEYWORD     = "KEYWORD"
@@ -62,6 +75,7 @@ func parseCreateDatabaseStatement(tokens []Token) {
 	fmt.Println("Database name:", databaseName.Value)
 
 	// TODO: create database
+	databases[databaseName.Value] = Database{Name: databaseName.Value, Tables: make(map[string]Table)}
 }
 
 func parseCreateTableStatement(tokens []Token) {
@@ -137,6 +151,7 @@ func parseCreateTableStatement(tokens []Token) {
 	}
 
 	// TODO: create table with fields
+	databases["default"].Tables[tableName.Value] = Table{Name: tableName.Value, Columns: columns, Rows: make([]map[string]string, 0)}
 }
 
 func parseInsertStatement(tokens []Token) {
@@ -245,6 +260,14 @@ func parseInsertStatement(tokens []Token) {
 	fmt.Println("Values:", values)
 
 	// TODO: insert data into table
+	table := databases["default"].Tables[tableName.Value]
+	row := make(map[string]string)
+	for i, columnName := range columnNames {
+		row[columnName] = values[i]
+		table.Rows = append(table.Rows, row)
+		databases["default"].Tables[tableName.Value] = table
+	}
+
 }
 
 func parseInput(input string) {
@@ -351,12 +374,15 @@ func main() {
 
 		input = strings.TrimSpace(input)
 
-		if input == "QUIT" {
+		if input == "QUIT;" {
 			fmt.Println("Quiting GoVault...")
-			return
+			break
+			//return
 		}
 
 		fmt.Println("Input:", input)
 		parseInput(input)
 	}
+
+	fmt.Println(databases)
 }
