@@ -1,2 +1,7 @@
+# IDE
 .idea
 .vscode
+
+# Build
+govault
+govault.exe
